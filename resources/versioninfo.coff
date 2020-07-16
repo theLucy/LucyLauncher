@@ -1,0 +1,31 @@
+#pragma code_page(65001)
+
+1 VERSIONINFO
+FILEVERSION     0,0,0,1
+PRODUCTVERSION  0,0,0,1
+FILEFLAGSMASK   0X3FL
+FILEFLAGS       0L
+FILEOS          0X40004L
+FILETYPE        0X1
+FILESUBTYPE     0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "042704B0"
+        BEGIN
+            VALUE "CompanyName", "UAB ""Busturas"""
+            VALUE "FileDescription", "Launcheris paleisti/atnaujinti kitas programas"
+            VALUE "FileVersion", "v0.0.0.1"
+            VALUE "InternalName", "launcher_app"
+            VALUE "OriginalFilename", "launcher_app.exe"
+            VALUE "ProductName", "Busturas Applications Launcher"
+            VALUE "ProductVersion", "v0.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0427, 0x04B0
+    END
+END
+
+1 ICON "icon.ico"

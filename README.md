@@ -1,0 +1,1 @@
+This app downloads/updates and launches various Busturas apps made by all developers there.

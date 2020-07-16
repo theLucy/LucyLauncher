@@ -1,0 +1,4 @@
+*.exe
+target/
+*.sublime-workspace
+resources.go

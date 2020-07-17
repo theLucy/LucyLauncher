@@ -5,7 +5,13 @@
 			"path": "."
 		},
 		{
-			"path": "./src"
+			"path": "./shared"
+		},
+		{
+			"path": "./client"
+		},
+		{
+			"path": "./service"
 		}
 	],
 	"settings":

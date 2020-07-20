@@ -8,7 +8,15 @@ import (
 	"net/rpc"
 	"os"
 	"path/filepath"
+	_ "io/ioutil"
 )
+
+type App struct {
+	Name string
+	Icon []byte
+	Description string
+	Changelong string
+}
 
 type Service struct{}
 
@@ -18,6 +26,14 @@ func (_ *Service) Multiply(args shared.Args, reply *int32) error {
 }
 
 func (_ *Service) GetFiles(_ *shared.Arg, reply *[]string) error {
+	var Apps []App
+	
+	/*dat, err := ioutil.ReadFile("/tmp/dat")
+    if err != nil {
+            panic(err)
+        }
+    fmt.Print(string(dat))*/
+
 	err := filepath.Walk("apps", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)

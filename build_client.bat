@@ -1,10 +1,10 @@
 @echo off
 IF NOT "%~1"=="startas" GOTO START
 
-set "app_name=go_launcher_app"
+set "app_name=launcher_app"
 
 cls
-windres -i "resources\versioninfo.coff" -o "client\versioninfo.syso"
+windres -i "resources\versioninfo_client.coff" -o "client\versioninfo.syso"
 
 cd client
 
@@ -37,7 +37,6 @@ upx --ultra-brute %app_name%.exe
 echo Finished RELEASE Build.
 
 :POST
-del ..\target\* /Q /S
 move %exe_name% ..\target\ >nul
 IF "%~2"=="run" GOTO RUN
 IF "%~2"=="rrun" GOTO RUN
@@ -55,4 +54,4 @@ GOTO EXIT
 
 :START
 cd ..
-start build.bat startas %~1
+start build_client.bat startas %~1

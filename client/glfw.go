@@ -19,8 +19,8 @@ const (
 	MonitorWidth       int = 1920
 	MonitorHeight      int = 1080
 	MonitorRefreshRate int = 60
-	AppWidth           int = 1024
-	AppHeight          int = 768
+	AppWidth           int = 640
+	AppHeight          int = 480
 )
 
 // GLFW implements a platform based on github.com/go-gl/glfw (v3.2).

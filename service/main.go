@@ -3,71 +3,111 @@ package main
 import (
 	"fmt"
 	"go_launcher_app/shared"
+	"io/ioutil"
+	_ "io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"net/rpc"
 	"os"
 	"path/filepath"
-	_ "io/ioutil"
+	"sort"
 )
-
-type App struct {
-	Name string
-	Icon []byte
-	Description string
-	Changelong string
-}
 
 type Service struct{}
 
-func (_ *Service) Multiply(args shared.Args, reply *int32) error {
-	*reply = args.A * args.B
-	return nil
+func zipFileHander(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, r.URL.Query().Get("zipPath"))
 }
 
-func (_ *Service) GetFiles(_ *shared.Arg, reply *[]string) error {
-	var Apps []App
-	
-	/*dat, err := ioutil.ReadFile("/tmp/dat")
-    if err != nil {
-            panic(err)
-        }
-    fmt.Print(string(dat))*/
+func readDirNames(dirname string) ([]string, error) {
+	f, err := os.Open(dirname)
+	if err != nil {
+		return nil, err
+	}
 
-	err := filepath.Walk("apps", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
-			return err
-		}
-		*reply = append(*reply, info.Name())
-		return nil
-	})
+	names, err := f.Readdirnames(-1)
+	f.Close()
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(names)
+	return names, nil
+}
+
+func (_ *Service) GetFiles(_ *shared.Arg, reply *[]shared.App) error {
+	/* TODO: perdayrti kad butu http + rpc is pavyzdzio rpc ant vieno porto ir siusti failus is disko per http */
+	//http.ServeFile(w, r, "path/dawdaw")
+
+	apps, err := readDirNames("apps")
 	if err != nil {
 		return err
 	}
 
-	if len(*reply) > 0 {
-		(*reply)[0] = (*reply)[len(*reply)-1]
-		*reply = (*reply)[:len(*reply)-1]
+	for _, x := range apps {
+		var TempApp shared.App
+
+		versions, err := readDirNames("apps/" + x)
+		if err != nil {
+			return err
+		}
+
+		TempApp.Name = x
+
+		for _, y := range versions {
+
+			var TempVersion shared.Version
+
+			if y == "icon.png" {
+				dat, err := ioutil.ReadFile(filepath.Join("apps", x, y))
+				if err != nil {
+					panic(err)
+				}
+				TempApp.Icon = dat
+			} else if y == "desc.txt" {
+				dat, err := ioutil.ReadFile(filepath.Join("apps", x, y))
+				if err != nil {
+					panic(err)
+				}
+				TempApp.Description = string(dat)
+			} else {
+				files, err := readDirNames(filepath.Join("apps", x, y))
+				if err != nil {
+					return err
+				}
+				TempVersion.Name = y
+				for _, z := range files {
+
+					if z == "changes.txt" {
+						dat, err := ioutil.ReadFile(filepath.Join("apps", x, y, z))
+						if err != nil {
+							panic(err)
+						}
+						TempVersion.Changelog = string(dat)
+					} else if z == "app.zip" {
+						TempVersion.ArchiveName = filepath.Join("apps", x, y, z)
+					}
+				}
+				TempApp.Versions = append(TempApp.Versions, TempVersion)
+			}
+		}
+
+		*reply = append(*reply, TempApp)
+		fmt.Printf("\n")
 	}
+
 	return nil
 }
 
 func main() {
 	rpc.Register(new(Service))
+	rpc.HandleHTTP()
 	listener, e := net.Listen("tcp", ":5090")
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
 	log.Printf("Listening on 5090..")
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		go rpc.ServeConn(conn)
-	}
+	http.HandleFunc("/", zipFileHander)
+	http.Serve(listener, nil)
 }

@@ -1,7 +1,16 @@
 package shared
 
-type Args struct {
-	A, B int32
+type Arg struct{}
+
+type App struct {
+	Name        string
+	Icon        []byte
+	Description string
+	Versions    []Version
 }
 
-type Arg struct{}
+type Version struct {
+	Name        string
+	Changelog   string
+	ArchiveName string
+}

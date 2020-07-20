@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	_ "go_launcher_app/client/icons"
+	"go_launcher_app/shared"
 	_ "go_launcher_app/shared"
 	"io"
 	"log"
@@ -98,7 +99,7 @@ func Run(glfw GLFW, ogl OpenGL) {
 	clearColor := [4]float32{0.0, 0.0, 0.0, 1.0}
 	demoWindow := false
 
-	var reply []string
+	var reply []shared.App
 
 	refreshApps := func() {
 		err := client.Call("Service.GetFiles", struct{}{}, &reply)
@@ -140,8 +141,9 @@ func Run(glfw GLFW, ogl OpenGL) {
 			refreshApps()
 		}
 		for _, x := range reply {
-			if imgui.CollapsingHeader(x) {
-				imgui.Text("Up to date")
+			if imgui.CollapsingHeader(x.Name) {
+				imgui.Text(x.Description)
+				imgui.Text(fmt.Sprintf("%v", x.Versions))
 			}
 		}
 
@@ -203,7 +205,7 @@ func utf(ansiString string) string {
  */
 func main() {
 	var err error
-	client, err = rpc.Dial("tcp", "127.0.0.1:5090")
+	client, err = rpc.DialHTTP("tcp", "127.0.0.1:5090")
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}

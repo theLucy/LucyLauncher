@@ -66,6 +66,7 @@ func NewGLFW(imguiIO imgui.IO) (*GLFW, error) {
 	platform.setMouseCursors()
 	platform.installCallbacks()
 	platform.imguiIO.SetBackendFlags(imgui.BackendFlagHasMouseCursors | imgui.BackendFlagsRendererHasVtxOffset)
+	platform.imguiIO.SetConfigFlags(imgui.ConfigFlagNavEnableKeyboard)
 
 	return platform, nil
 }

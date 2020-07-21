@@ -97,7 +97,8 @@ func StyleColorsLight() {
 func Run(glfw GLFW, ogl OpenGL) {
 	imgui.CurrentIO().SetClipboard(glfw)
 	clearColor := [4]float32{0.0, 0.0, 0.0, 1.0}
-	demoWindow := false
+	demoWindow := true
+	var selectedVersionIndex []int
 
 	var reply []shared.App
 
@@ -106,6 +107,7 @@ func Run(glfw GLFW, ogl OpenGL) {
 		if err != nil {
 			log.Fatal("error:", err)
 		}
+		selectedVersionIndex = make([]int, len(reply))
 	}
 
 	refreshApps()
@@ -140,10 +142,31 @@ func Run(glfw GLFW, ogl OpenGL) {
 		if imgui.Button("veiksmas") {
 			refreshApps()
 		}
-		for _, x := range reply {
+		for i, x := range reply {
 			if imgui.CollapsingHeader(x.Name) {
+				if len(x.Versions) == 0 {
+					continue
+				}
 				imgui.Text(x.Description)
-				imgui.Text(fmt.Sprintf("%v", x.Versions))
+				combo_label := x.Versions[selectedVersionIndex[i]].Name
+				if imgui.BeginCombo("Versions##"+x.Name, combo_label) {
+		            for n := 0; n < len(x.Versions); n++ {
+		                is_selected := (selectedVersionIndex[i] == n)
+		                if imgui.SelectableV(x.Versions[n].Name, is_selected, 0, imgui.Vec2{}) {
+		                    selectedVersionIndex[i] = n;
+		                }
+
+		                if (is_selected) {
+		                    imgui.SetItemDefaultFocus();
+		                }
+		            }
+		            imgui.EndCombo();
+		        }
+
+		        imgui.SameLine()
+				if imgui.Button(x.Name) {
+					fmt.Print("test")
+				}
 			}
 		}
 

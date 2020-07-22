@@ -97,10 +97,11 @@ func StyleColorsLight() {
 func Run(glfw GLFW, ogl OpenGL) {
 	imgui.CurrentIO().SetClipboard(glfw)
 	clearColor := [4]float32{0.0, 0.0, 0.0, 1.0}
-	demoWindow := true
+	demoWindow := false
 	var selectedVersionIndex []int
 
 	var reply []shared.App
+	var appIcons []Texture
 
 	refreshApps := func() {
 		err := client.Call("Service.GetFiles", struct{}{}, &reply)
@@ -108,6 +109,15 @@ func Run(glfw GLFW, ogl OpenGL) {
 			log.Fatal("error:", err)
 		}
 		selectedVersionIndex = make([]int, len(reply))
+		DeleteTextures(appIcons)
+		appIcons = appIcons[:0]
+		for _, x := range reply {
+			if len(x.Icon) == 0 {
+				continue
+			}
+			icon, _ := NewTextureFromBytes(x.Icon, x.Name)
+			appIcons = append(appIcons, icon)
+		}
 	}
 
 	refreshApps()
@@ -138,8 +148,7 @@ func Run(glfw GLFW, ogl OpenGL) {
 		imgui.PopStyleVarV(3)
 		imgui.PushItemWidth(120.0)
 
-		imgui.Text("Programos")
-		if imgui.Button("veiksmas") {
+		if imgui.Button("Atnaujinti sarasa") {
 			refreshApps()
 		}
 		for i, x := range reply {
@@ -147,24 +156,26 @@ func Run(glfw GLFW, ogl OpenGL) {
 				if len(x.Versions) == 0 {
 					continue
 				}
+				imgui.Image(appIcons[i].ID, imgui.Vec2{64, 64})
+				imgui.SameLine()
 				imgui.Text(x.Description)
 				combo_label := x.Versions[selectedVersionIndex[i]].Name
-				if imgui.BeginCombo("Versions##"+x.Name, combo_label) {
-		            for n := 0; n < len(x.Versions); n++ {
-		                is_selected := (selectedVersionIndex[i] == n)
-		                if imgui.SelectableV(x.Versions[n].Name, is_selected, 0, imgui.Vec2{}) {
-		                    selectedVersionIndex[i] = n;
-		                }
+				if imgui.BeginCombo("Versijos##"+x.Name, combo_label) {
+					for n := 0; n < len(x.Versions); n++ {
+						is_selected := (selectedVersionIndex[i] == n)
+						if imgui.SelectableV(x.Versions[n].Name, is_selected, 0, imgui.Vec2{}) {
+							selectedVersionIndex[i] = n
+						}
 
-		                if (is_selected) {
-		                    imgui.SetItemDefaultFocus();
-		                }
-		            }
-		            imgui.EndCombo();
-		        }
+						if is_selected {
+							imgui.SetItemDefaultFocus()
+						}
+					}
+					imgui.EndCombo()
+				}
 
-		        imgui.SameLine()
-				if imgui.Button(x.Name) {
+				imgui.SameLine()
+				if imgui.Button("Paleisti") {
 					fmt.Print("test")
 				}
 			}

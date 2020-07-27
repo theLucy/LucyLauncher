@@ -1,17 +1,21 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	_ "go_launcher_app/client/icons"
 	"go_launcher_app/shared"
 	_ "go_launcher_app/shared"
 	"io"
 	"log"
+	"net/http"
 	"net/rpc"
 	"os"
 	"path/filepath"
 
 	"github.com/inkyblackness/imgui-go/v2"
+	"github.com/skratchdot/open-golang"
 )
 
 var (
@@ -176,7 +180,16 @@ func Run(glfw GLFW, ogl OpenGL) {
 
 				imgui.SameLine()
 				if imgui.Button("Paleisti") {
-					fmt.Print("test")
+					fileUrl := "http://127.0.0.1:5090/?zipPath=apps/" + x.Name + "/" + combo_label + "/app.tar.gz"
+					err := os.MkdirAll(x.Name+"/"+combo_label+"/", 0777)
+					if err != nil {
+						log.Fatal(err)
+					}
+					err = DownloadFile(x.Name+"/"+combo_label+"/", fileUrl)
+					if err != nil {
+						panic(err)
+					}
+					fmt.Println("Downloaded: " + fileUrl)
 				}
 			}
 		}
@@ -245,7 +258,7 @@ func main() {
 	}
 
 	/* Logging */
-	log.SetFlags(log.LstdFlags)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetPrefix("[INFO ] ")
 	logFile, err := os.OpenFile(filepath.Join(exeDir, "go_launcher_app.LOG"),
 		os.O_CREATE|os.O_APPEND, 0666)
@@ -281,4 +294,66 @@ func main() {
 	/* ImGUI init end */
 
 	Run(*glfw, *ogl)
+}
+
+func DownloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create a tar Reader
+	gzr, err := gzip.NewReader(resp.Body)
+	tr := tar.NewReader(gzr)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Iterate through the files in the archive.
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			// end of tar archive
+			break
+		}
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			// create a directory
+			fmt.Println("creating:   " + hdr.Name)
+			err = os.MkdirAll(filepath+hdr.Name, 0777)
+			if err != nil {
+				log.Fatal(err)
+			}
+		case tar.TypeReg, tar.TypeRegA:
+			// write a file
+			fmt.Println("extracting: " + hdr.Name)
+			w, err := os.Create(filepath + hdr.Name)
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, err = io.Copy(w, tr)
+			if err != nil {
+				log.Fatal(err)
+			}
+			w.Close()
+		}
+	}
+
+	// Create the file
+	// out, err := os.Create(filepath)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer out.Close()
+
+	// Write the body to file
+	// _, err = io.Copy(out, resp.Body)
+	// return err
+	return nil
 }

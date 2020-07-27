@@ -36,9 +36,6 @@ func readDirNames(dirname string) ([]string, error) {
 }
 
 func (_ *Service) GetFiles(_ *shared.Arg, reply *[]shared.App) error {
-	/* TODO: perdayrti kad butu http + rpc is pavyzdzio rpc ant vieno porto ir siusti failus is disko per http */
-	//http.ServeFile(w, r, "path/dawdaw")
-
 	apps, err := readDirNames("apps")
 	if err != nil {
 		return err

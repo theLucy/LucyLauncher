@@ -1,1 +1,1 @@
-This app downloads/updates and launches various Busturas apps made by all developers there.
+This is general purpose software downloader/updater/launcher with ability to choose version, download documentation, etc.
